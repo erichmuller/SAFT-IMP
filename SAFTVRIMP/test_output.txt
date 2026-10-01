@@ -1,0 +1,63 @@
+
+── 1. Zero multipoles, order = 3  ⇒  SAFT-VR Mie ──
+  hexane          V=1.3e-04 T= 300.0  |Δa_res/a_res|=2.2e-16  |Δp/p|=5.6e-15  max|Δμ_res/μ_res|=1.3e-15
+  hexane          V=1.0e-03 T= 450.0  |Δa_res/a_res|=1.8e-15  |Δp/p|=1.1e-15  max|Δμ_res/μ_res|=4.4e-16
+  hexane          V=2.0e-02 T= 400.0  |Δa_res/a_res|=8.4e-14  |Δp/p|=2.2e-16  max|Δμ_res/μ_res|=4.3e-14
+  hexane          V=1.6e-04 T=1200.0  |Δa_res/a_res|=0.0e+00  |Δp/p|=0.0e+00  max|Δμ_res/μ_res|=2.2e-16
+  hexane+decane   V=1.3e-04 T= 300.0  |Δa_res/a_res|=6.0e-15  |Δp/p|=2.2e-16  max|Δμ_res/μ_res|=2.2e-16
+  hexane+decane   V=1.0e-03 T= 450.0  |Δa_res/a_res|=0.0e+00  |Δp/p|=1.9e-14  max|Δμ_res/μ_res|=4.4e-16
+  hexane+decane   V=2.0e-02 T= 400.0  |Δa_res/a_res|=1.4e-14  |Δp/p|=0.0e+00  max|Δμ_res/μ_res|=2.0e-14
+  hexane+decane   V=1.6e-04 T=1200.0  |Δa_res/a_res|=0.0e+00  |Δp/p|=0.0e+00  max|Δμ_res/μ_res|=2.2e-16
+  normal boiling point: SAFTVRIMP(order=3) 341.86441622 K, SAFTVRMie 341.86441622 K
+
+── 2. Dipolar LJ fluid (μ*² = 2)  ⇒  LJ with ε_m = εF², σ_m = σF^(-1/6), F = 1 + μ*⁴/(12T*) ──
+  T=   120 K  σ_eff/σ_m−1=2.2e-16  ϵ_eff/ε_m−1=-5.6e-16  d/d_m−1=2.2e-16  a_res rel.diff=1.1e-15
+  T=   200 K  σ_eff/σ_m−1=0.0e+00  ϵ_eff/ε_m−1=-2.2e-16  d/d_m−1=0.0e+00  a_res rel.diff=1.6e-15
+  T=   400 K  σ_eff/σ_m−1=2.2e-16  ϵ_eff/ε_m−1=-3.3e-16  d/d_m−1=0.0e+00  a_res rel.diff=4.7e-15
+  T=  3000 K  σ_eff/σ_m−1=2.2e-16  ϵ_eff/ε_m−1=0.0e+00  d/d_m−1=2.2e-16  a_res rel.diff=2.2e-16
+  dϵ_eff/dT: AD -5.915637860082e-01, analytic -5.915637860082e-01;  d²ϵ_eff/dT²: AD 7.287379972565e-03, analytic 7.287379972565e-03
+
+── 3. λ = 6 (Keesom + induction), 8 (μQ cross term), 10 (QQ) slots, chains and mixing  ⇒  mapped SAFT-VR Mie ──
+  T=   250 V=1.1e-04  a_res 7.8e-16   p 4.2e-15   μ_res 2.1e-15   (relative differences)
+  T=   250 V=1.0e-03  a_res 6.0e-15   p 8.9e-16   μ_res 6.9e-15   (relative differences)
+  T=   400 V=1.1e-04  a_res 1.1e-14   p 1.6e-15   μ_res 1.3e-14   (relative differences)
+  T=   400 V=1.0e-03  a_res 5.0e-14   p 1.1e-16   μ_res 6.5e-14   (relative differences)
+  T=  1500 V=1.1e-04  a_res 8.9e-16   p 6.7e-16   μ_res 1.3e-15   (relative differences)
+  T=  1500 V=1.0e-03  a_res 1.3e-15   p 2.2e-16   μ_res 3.2e-15   (relative differences)
+
+── 4. AD through the T-dependent potential (order = 2, polar chain + decane) ──
+  like-pair Sutherland set at 350 K (λₖ, εₖ/K): [(17.203, -956.616), (6.0, 956.616), (6.0, 44.6819), (8.0, 14.7153), (10.0, 4.21233)]
+  V=1.6e-04 T=350  ∂p/∂T AD 1.0728574792e+06 FD 1.0728574792e+06 | ∂p/∂V rel 3.3e-11 | ∂p/∂z₁ rel 8.6e-13 | ∂²A_res/∂T² rel 8.6e-12 | Cv vs ∂U/∂T rel 6.3e-12
+  V=1.0e-02 T=450  ∂p/∂T AD 9.2388306239e+02 FD 9.2388306239e+02 | ∂p/∂V rel 9.1e-13 | ∂p/∂z₁ rel 2.4e-13 | ∂²A_res/∂T² rel 3.0e-11 | Cv vs ∂U/∂T rel 4.7e-12
+  dx_eff/dT: AD 1.284402271537e-05 IFT 1.284402271537e-05 | dϵ_eff/dT: AD -7.937965437748e-02 envelope -7.937965437748e-02
+
+── 5. n-hexane, SAFT-VR IMP with the second-order Barker–Henderson monomer (default) ──
+  p(V = 1.40e-04 m³/mol, T = 350.0 K) = 6.997403e+06 Pa;  ∇p = [∂p/∂V, ∂p/∂T, ∂p/∂n] = [-2.955279e+12, 6.261074e+05, 4.137390e+08]
+   T/K    p_sat/kPa (o2)  p_sat/kPa (o3≡VR-Mie)   ρ_l/(mol/L) o2   o3      ρ_v/(mol/L) o2   o3
+  300.0         21.687         21.690            7.5729    7.5722        0.00878   0.00879
+  350.0        129.931        130.018            7.0147    7.0124        0.04656   0.04665
+  400.0        466.365        467.171            6.3783    6.3699        0.15755   0.15841
+  450.0       1230.187       1235.103            5.6074    5.5719        0.42873   0.43659
+  500.0       2695.557       2733.018            4.5261    4.2719        1.14365   1.30228
+  T_b(1 atm): o2 341.88 K, o3 341.86 K (exp. ≈ 341.9 K)
+  T_c, p_c:   o2 530.41 K, 4.095 MPa;  o3 515.12 K, 3.425 MPa (exp. ≈ 507.8 K, 3.03 MPa)
+
+── 6. Müller–Gelb (2003) IMP fluids (their MD parameters, not refitted for this EoS) ──
+  fluid                        T_c/K (o2)   T_c/K (o3)   T_c/K (o2, moments off)   exp.
+  benzene_MG2003                  571.49       553.54       488.17                  562.0
+  carbon dioxide_MG2003           341.73       330.97       292.57                  304.1
+  1,2-dichloroethane_MG2003       599.19       578.85       568.58                  561.6
+  cyclohexane_MG2003              560.65       540.63       560.65                  553.6
+  n-octane_MG2003                 588.16       567.17       588.16                  568.7
+  benzene_MG2003 at 450 K: dp_sat/dT (FD) = 23493.584539 Pa/K;  Δh_vap/(TΔv) = 23493.584538 Pa/K
+  1,2-dichloroethane(1) + cyclohexane(2), p = 1 atm:
+     x₁ = 0.1   T_bub = 309.36 K   y₁ = 0.1109
+     x₁ = 0.3   T_bub = 309.46 K   y₁ = 0.2628
+     x₁ = 0.5   T_bub = 310.77 K   y₁ = 0.3674
+     x₁ = 0.7   T_bub = 313.33 K   y₁ = 0.4694
+     x₁ = 0.9   T_bub = 320.18 K   y₁ = 0.6824
+  predicted azeotrope: T = 309.21 K at x₁ = 0.181 (pure boiling points, o2: 329.31 K and 310.01 K)
+  order 2: LJ T_c* = 1.3608, ρ_c* = 0.3105;  μ*² = 2: T_c* = 1.8847, ρ_c* = 0.3369
+  order 3: LJ T_c* = 1.3122, ρ_c* = 0.3003;  μ*² = 2: T_c* = 1.8329, ρ_c* = 0.3264
+Test Summary: | Pass  Total     Time
+SAFT-VR IMP   |   97     97  3m23.2s

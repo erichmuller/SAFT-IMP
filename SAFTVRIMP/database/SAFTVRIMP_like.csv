@@ -1,0 +1,10 @@
+Clapeyron Database File,,,,,,,,,,,
+SAFTVRIMP Like Parameters [csvtype = like],,,,,,,,,,,
+species,Mw,segment,sigma,epsilon,lambda_r,lambda_a,dipole,quadrupole,polarizability,source,comment
+hexane~|~n-hexane,86.177,2.1097,4.423,354.38,17.203,6.0,0.0,0.0,0.0,10.1063/1.4819786,SAFT-VR Mie parameters (no multipoles): reproduces SAFTVRMie with order = 3
+decane~|~n-decane,142.285,2.9976,4.589,400.79,18.885,6.0,0.0,0.0,0.0,10.1063/1.4819786,SAFT-VR Mie parameters (no multipoles): reproduces SAFTVRMie with order = 3
+benzene_MG2003,78.11,1.0,5.236,358.74,12.0,6.0,0.0,12.2615,0.0,10.1021/ie030033y,IMP simulation parameters (Table 1; cut-and-shifted at 5 sigma in MD); not refitted for this EoS
+carbon dioxide_MG2003,44.01,1.0,3.748,215.0,12.0,6.0,0.0,4.0982,0.0,10.1021/ie030033y,IMP simulation parameters (Table 1); not refitted for this EoS
+cyclohexane_MG2003,84.16,1.0,5.360,412.0,12.0,6.0,0.0,0.0,0.0,10.1021/ie030033y,IMP simulation parameters (Table 1); not refitted for this EoS
+"1,2-dichloroethane_MG2003",98.96,1.0,4.820,417.83,12.0,6.0,2.0899,0.0,0.0,10.1021/ie030033y,IMP simulation parameters (Table 1); not refitted for this EoS
+n-octane_MG2003,114.23,1.0,4.748,432.22,12.0,6.0,0.0,0.0,0.0,10.1021/ie030033y,IMP simulation parameters (Table 1); not refitted for this EoS
