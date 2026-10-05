@@ -1,0 +1,20 @@
+# CO2 molecule.
+# header section:
+2 atoms
+1 bonds
+0 angles
+
+# body section:
+Coords
+
+1    0.00000   0.00000   0.00000
+2    2.85109   0.00000   0.00000
+
+Types
+
+1        1   # CO2
+2        1   # CO2
+
+Bonds
+
+1   1      1      2

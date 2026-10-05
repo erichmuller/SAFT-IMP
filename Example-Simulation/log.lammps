@@ -1,0 +1,277 @@
+LAMMPS (2 Sep 2026)
+  using 1 OpenMP thread(s) per MPI task
+# Variables
+variable T equal 300
+variable PMPa equal 20
+
+variable vseed equal 123
+variable molranseed equal 123
+variable molseed equal 123
+
+variable mol_num equal 4000
+variable box_length equal 74.28
+
+# ---- molecular input -------------------------------------------------------
+variable mol_mass equal 44.01
+variable m      equal 2             # segments per molecule (integer in these fits)
+variable sigma  equal 2.85109       # segment diameter            [Angstrom]
+variable epsK   equal 156.873       # dispersion well depth       [K]
+variable lr     equal 10.6993       # repulsive exponent  (MUST exceed the largest
+                                    #   active attractive exponent: 6 with a dipole,
+                                    #   10 once the quadrupole term is switched on)
+variable la     equal 6.00          # attractive (dispersion) exponent; 6 for SAFT-VR IMP fits
+variable muD    equal 0.0           # molecular dipole moment     [D]
+variable QDA    equal 1.7320        # molecular quadrupole moment [D*Angstrom]; 0 = plain SAFT-gamma Mie
+variable alpha  equal 0.0           # molecular polarizability    [Angstrom^3]
+
+# ---- physical constants ----------------------------------------------------
+variable kb     equal 0.0019872067  # kcal/(mol*K)  -> energy unit per kelvin
+
+variable segment_mass equal ${mol_mass}/${m}
+variable segment_mass equal 44.01/${m}
+variable segment_mass equal 44.01/2
+variable P          equal ${PMPa}*9.869
+variable P          equal 20*9.869
+
+# derived coefficients
+# (1 D)^2/(4*pi*eps0*kB) = 7242.97 K*Angstrom^3; times kb -> kcal/mol*Angstrom^3 per D^2.
+# The moments are divided by m because they are distributed over the m segments.
+variable D2K     equal 7242.970516
+
+variable Cmie    equal ${lr}/(${lr}-${la})*(${lr}/${la})^(${la}/(${lr}-${la}))
+variable Cmie    equal 10.6993/(${lr}-${la})*(${lr}/${la})^(${la}/(${lr}-${la}))
+variable Cmie    equal 10.6993/(10.6993-${la})*(${lr}/${la})^(${la}/(${lr}-${la}))
+variable Cmie    equal 10.6993/(10.6993-6)*(${lr}/${la})^(${la}/(${lr}-${la}))
+variable Cmie    equal 10.6993/(10.6993-6)*(10.6993/${la})^(${la}/(${lr}-${la}))
+variable Cmie    equal 10.6993/(10.6993-6)*(10.6993/6)^(${la}/(${lr}-${la}))
+variable Cmie    equal 10.6993/(10.6993-6)*(10.6993/6)^(6/(${lr}-${la}))
+variable Cmie    equal 10.6993/(10.6993-6)*(10.6993/6)^(6/(10.6993-${la}))
+variable Cmie    equal 10.6993/(10.6993-6)*(10.6993/6)^(6/(10.6993-6))
+variable epsreal equal ${epsK}*${kb}
+variable epsreal equal 156.873*${kb}
+variable epsreal equal 156.873*0.0019872067
+variable beta    equal 1/(${kb}*${T})
+variable beta    equal 1/(0.0019872067*${T})
+variable beta    equal 1/(0.0019872067*300)
+variable mu2     equal ${D2K}*${kb}*${muD}*${muD}/${m}     # mu_hat^2  [kcal/mol*A^3]
+variable mu2     equal 7242.970516*${kb}*${muD}*${muD}/${m}     
+variable mu2     equal 7242.970516*0.0019872067*${muD}*${muD}/${m}     
+variable mu2     equal 7242.970516*0.0019872067*0*${muD}/${m}     
+variable mu2     equal 7242.970516*0.0019872067*0*0/${m}     
+variable mu2     equal 7242.970516*0.0019872067*0*0/2     
+variable Q2      equal ${D2K}*${kb}*${QDA}*${QDA}/${m}     # Q_hat^2   [kcal/mol*A^5]
+variable Q2      equal 7242.970516*${kb}*${QDA}*${QDA}/${m}     
+variable Q2      equal 7242.970516*0.0019872067*${QDA}*${QDA}/${m}     
+variable Q2      equal 7242.970516*0.0019872067*1.732*${QDA}/${m}     
+variable Q2      equal 7242.970516*0.0019872067*1.732*1.732/${m}     
+variable Q2      equal 7242.970516*0.0019872067*1.732*1.732/2     
+variable mumuc   equal ${mu2}*${mu2}/3                     # [(kcal/mol)^2*A^6]
+variable mumuc   equal 0*${mu2}/3                     
+variable mumuc   equal 0*0/3                     
+variable muQc    equal ${mu2}*${Q2}                        # [(kcal/mol)^2*A^8]
+variable muQc    equal 0*${Q2}                        
+variable muQc    equal 0*21.5886526973472                        
+variable QQc     equal 1.4*${Q2}*${Q2}                     # [(kcal/mol)^2*A^10]
+variable QQc     equal 1.4*21.5886526973472*${Q2}                     
+variable QQc     equal 1.4*21.5886526973472*21.5886526973472                     
+
+# Initialisation
+
+units               real
+boundary            p p p
+atom_style          full
+newton              on
+
+pair_style          lepton 20.0
+bond_style          harmonic
+
+special_bonds       lj 0.0 1.0 1.0
+
+region startbox block 0 ${box_length} 0 ${box_length} 0 ${box_length}
+region startbox block 0 74.28 0 ${box_length} 0 ${box_length}
+region startbox block 0 74.28 0 74.28 0 ${box_length}
+region startbox block 0 74.28 0 74.28 0 74.28
+create_box 1 startbox bond/types 1                       angle/types 0                       dihedral/types 0                       extra/bond/per/atom 10                       extra/angle/per/atom 10                       extra/dihedral/per/atom 10                       extra/special/per/atom 20
+Created orthogonal box = (0 0 0) to (74.28 74.28 74.28)
+  4 by 4 by 8 MPI processor grid
+
+mass            1 ${segment_mass}
+mass            1 22.005
+pair_coeff      1 1 C*eps*((sig/r)^lamr-(sig/r)^lama)-beta*(mumuc/r^6+muQc/r^8+QQc/r^10);C=${Cmie};eps=${epsreal};sig=${sigma};lamr=${lr};lama=${la};beta=${beta};mumuc=${mumuc};muQc=${muQc};QQc=${QQc}
+pair_coeff      1 1 C*eps*((sig/r)^lamr-(sig/r)^lama)-beta*(mumuc/r^6+muQc/r^8+QQc/r^10);C=4.76492497123718;eps=${epsreal};sig=${sigma};lamr=${lr};lama=${la};beta=${beta};mumuc=${mumuc};muQc=${muQc};QQc=${QQc}
+pair_coeff      1 1 C*eps*((sig/r)^lamr-(sig/r)^lama)-beta*(mumuc/r^6+muQc/r^8+QQc/r^10);C=4.76492497123718;eps=0.3117390766491;sig=${sigma};lamr=${lr};lama=${la};beta=${beta};mumuc=${mumuc};muQc=${muQc};QQc=${QQc}
+pair_coeff      1 1 C*eps*((sig/r)^lamr-(sig/r)^lama)-beta*(mumuc/r^6+muQc/r^8+QQc/r^10);C=4.76492497123718;eps=0.3117390766491;sig=2.85109;lamr=${lr};lama=${la};beta=${beta};mumuc=${mumuc};muQc=${muQc};QQc=${QQc}
+pair_coeff      1 1 C*eps*((sig/r)^lamr-(sig/r)^lama)-beta*(mumuc/r^6+muQc/r^8+QQc/r^10);C=4.76492497123718;eps=0.3117390766491;sig=2.85109;lamr=10.6993;lama=${la};beta=${beta};mumuc=${mumuc};muQc=${muQc};QQc=${QQc}
+pair_coeff      1 1 C*eps*((sig/r)^lamr-(sig/r)^lama)-beta*(mumuc/r^6+muQc/r^8+QQc/r^10);C=4.76492497123718;eps=0.3117390766491;sig=2.85109;lamr=10.6993;lama=6;beta=${beta};mumuc=${mumuc};muQc=${muQc};QQc=${QQc}
+pair_coeff      1 1 C*eps*((sig/r)^lamr-(sig/r)^lama)-beta*(mumuc/r^6+muQc/r^8+QQc/r^10);C=4.76492497123718;eps=0.3117390766491;sig=2.85109;lamr=10.6993;lama=6;beta=1.67739638424797;mumuc=${mumuc};muQc=${muQc};QQc=${QQc}
+pair_coeff      1 1 C*eps*((sig/r)^lamr-(sig/r)^lama)-beta*(mumuc/r^6+muQc/r^8+QQc/r^10);C=4.76492497123718;eps=0.3117390766491;sig=2.85109;lamr=10.6993;lama=6;beta=1.67739638424797;mumuc=0;muQc=${muQc};QQc=${QQc}
+pair_coeff      1 1 C*eps*((sig/r)^lamr-(sig/r)^lama)-beta*(mumuc/r^6+muQc/r^8+QQc/r^10);C=4.76492497123718;eps=0.3117390766491;sig=2.85109;lamr=10.6993;lama=6;beta=1.67739638424797;mumuc=0;muQc=0;QQc=${QQc}
+pair_coeff      1 1 C*eps*((sig/r)^lamr-(sig/r)^lama)-beta*(mumuc/r^6+muQc/r^8+QQc/r^10);C=4.76492497123718;eps=0.3117390766491;sig=2.85109;lamr=10.6993;lama=6;beta=1.67739638424797;mumuc=0;muQc=0;QQc=652.497895401347
+bond_coeff      1 10000.0 ${sigma}
+bond_coeff      1 10000.0 2.85109
+
+molecule        smol CO2.txt
+Read molecule template smol:
+# CO2 molecule.
+  1 molecules
+  0 fragments
+  0 bodies
+  2 atoms with max type 1
+  1 bonds with max type 1
+  0 angles with max type 0
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+create_atoms 0 random ${mol_num} ${molranseed} NULL overlap 2.0 mol smol ${molseed} units box maxtry 10000
+create_atoms 0 random 4000 ${molranseed} NULL overlap 2.0 mol smol ${molseed} units box maxtry 10000
+create_atoms 0 random 4000 123 NULL overlap 2.0 mol smol ${molseed} units box maxtry 10000
+create_atoms 0 random 4000 123 NULL overlap 2.0 mol smol 123 units box maxtry 10000
+Created 8000 atoms
+  using box units in orthogonal box = (0 0 0) to (74.28 74.28 74.28)
+  create_atoms CPU = 0.248 seconds
+
+neigh_modify        one 6000
+
+variable            cpuremain equal cpuremain
+variable            vol equal vol
+variable            density equal density
+variable            lx equal lx
+
+# Minimisation
+
+thermo_style        custom fmax fnorm press etotal ke pe ebond eangle edihed eimp evdwl etail ecoul elong
+thermo              100
+
+min_style           cg
+min_modify          dmax 0.05
+minimize            1.0e-4 1.0e-6 2000 20000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 6000, page size: 100000
+  master list distance cutoff = 22
+  ghost atom cutoff = 22
+  binsize = 11, bins = 7 7 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lepton, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 15.34 | 15.35 | 15.35 Mbytes
+     Fmax          Fnorm          Press          TotEng         KinEng         PotEng         E_bond        E_angle        E_dihed        E_impro         E_vdwl         E_tail         E_coul         E_long    
+ 347.80607      7556.3021      24004.599      27838.236      0              27838.236      6.8132536e-22  0              0              0              27838.236      0              0              0            
+ 2.4282782      59.85234      -833.20196     -7777.9859      0             -7777.9859      0.017393192    0              0              0             -7778.0033      0              0              0            
+Loop time of 0.242661 on 128 procs for 51 steps with 8000 atoms
+
+99.1% CPU use with 128 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = energy tolerance
+  Energy initial, next-to-last, final = 
+      27838.2362668665  -7777.52099276451  -7777.98593487873
+  Force two-norm initial, final = 7556.3021 59.85234
+  Force max component initial, final = 347.80607 2.4282782
+  Final line search alpha, max atom move = 0.0032399834 0.0078675811
+  Iterations, force evaluations = 51 78
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.14278    | 0.18992    | 0.223      |   3.8 | 78.27
+Bond    | 4.1398e-05 | 5.2724e-05 | 7.39e-05   |   0.0 |  0.02
+Neigh   | 0.00058637 | 0.00059445 | 0.00060283 |   0.0 |  0.24
+Comm    | 0.01382    | 0.046426   | 0.094032   |   7.7 | 19.13
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.005663   |            |       |  2.33
+
+Nlocal:           62.5 ave          76 max          50 min
+Histogram: 5 9 9 21 19 28 20 5 7 5
+Nghost:        4008.99 ave        4092 max        3932 min
+Histogram: 5 4 17 19 17 27 22 12 4 1
+Neighs:        27152.5 ave       34080 max       19035 min
+Histogram: 2 9 6 12 24 26 21 12 13 3
+
+Total # of neighbors = 3475517
+Ave neighs/atom = 434.43962
+Ave special neighs/atom = 1
+Neighbor list builds = 1
+Dangerous builds = 0
+
+# Velocities
+
+velocity            all create ${T} ${vseed} mom yes rot no
+velocity            all create 300 ${vseed} mom yes rot no
+velocity            all create 300 123 mom yes rot no
+
+# NPT dynamics
+
+reset_timestep      0
+timestep            1.0
+thermo_style        custom time temp press etotal ke pe ebond eangle edihed eimp evdwl etail ecoul elong
+thermo              0
+
+fix                 0 all shake 1.0e-6 50 0 b 1
+Finding SHAKE clusters ...
+    4000 = # of size 2 clusters
+       0 = # of size 3 clusters
+       0 = # of size 4 clusters
+       0 = # of frozen angles
+  find clusters CPU = 0.002 seconds
+fix                 1 all npt temp ${T} ${T} $(100.0*dt) iso ${P} ${P} $(1000.0*dt) nreset 20000
+fix                 1 all npt temp 300 ${T} $(100.0*dt) iso ${P} ${P} $(1000.0*dt) nreset 20000
+fix                 1 all npt temp 300 300 $(100.0*dt) iso ${P} ${P} $(1000.0*dt) nreset 20000
+fix                 1 all npt temp 300 300 100 iso ${P} ${P} $(1000.0*dt) nreset 20000
+fix                 1 all npt temp 300 300 100 iso 197.38 ${P} $(1000.0*dt) nreset 20000
+fix                 1 all npt temp 300 300 100 iso 197.38 197.38 $(1000.0*dt) nreset 20000
+fix                 1 all npt temp 300 300 100 iso 197.38 197.38 1000 nreset 20000
+fix                 2 all ave/time 1 1000000 1000000 c_thermo_temp c_thermo_press v_density v_vol v_lx file run-averages.txt
+fix                 3 all ave/time 1000 1 1000 c_thermo_temp c_thermo_press v_density v_vol v_lx v_cpuremain file run-instantaneous.txt
+dump                dmp all atom 100000 dump.lammpstrj
+
+run                 2000000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 15.09 | 15.1 | 15.1 Mbytes
+     Time           Temp          Press          TotEng         KinEng         PotEng         E_bond        E_angle        E_dihed        E_impro         E_vdwl         E_tail         E_coul         E_long    
+ 0              360.009       -1431.2921     -624.95345      7153.0499     -7778.0033      0              0              0              0             -7778.0033      0              0              0            
+ 2000000        297.2079       203.27541     -3233.7479      5905.2494     -9138.9973      0              0              0              0             -9138.9973      0              0              0            
+Loop time of 7790.4 on 128 procs for 2000000 steps with 8000 atoms
+
+Performance: 22.181 ns/day, 1.082 hours/ns, 256.726 timesteps/s, 2.054 Matom-step/s
+96.7% CPU use with 128 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 5107.4     | 5714.8     | 6554.5     | 405.0 | 73.36
+Bond    | 0.31644    | 0.50684    | 0.61982    |   7.6 |  0.01
+Neigh   | 21.57      | 21.804     | 21.96      |   2.2 |  0.28
+Comm    | 806.05     | 1695       | 2338.7     | 824.9 | 21.76
+Output  | 0.0037742  | 0.020424   | 0.037608   |   6.8 |  0.00
+Modify  | 289.39     | 337        | 437.48     | 255.7 |  4.33
+Other   |            | 21.28      |            |       |  0.27
+
+Nlocal:           62.5 ave          77 max          42 min
+Histogram: 1 0 2 5 25 30 39 17 7 2
+Nghost:        4811.48 ave        4881 max        4730 min
+Histogram: 1 5 12 11 23 20 33 15 6 2
+Neighs:        34503.7 ave       42631 max       23182 min
+Histogram: 1 1 4 16 18 30 28 15 9 6
+
+Total # of neighbors = 4416470
+Ave neighs/atom = 552.05875
+Ave special neighs/atom = 1
+Neighbor list builds = 29699
+Dangerous builds = 0
+
+unfix               0
+unfix               1
+unfix               2
+unfix               3
+undump              dmp
+
+# Output
+write_data         final_structure.data nocoeff
+System init for write_data ...
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Total wall time: 2:09:50

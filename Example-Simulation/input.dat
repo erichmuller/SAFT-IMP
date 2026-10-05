@@ -1,0 +1,115 @@
+# Variables
+variable T equal 300
+variable PMPa equal 20
+
+variable vseed equal 123
+variable molranseed equal 123
+variable molseed equal 123
+
+variable mol_num equal 4000
+variable box_length equal 74.28
+
+# ---- molecular input -------------------------------------------------------
+variable mol_mass equal 44.01
+variable m      equal 2             # segments per molecule (integer in these fits)
+variable sigma  equal 2.85109       # segment diameter            [Angstrom]
+variable epsK   equal 156.873       # dispersion well depth       [K]
+variable lr     equal 10.6993       # repulsive exponent  (MUST exceed the largest
+                                    #   active attractive exponent: 6 with a dipole,
+                                    #   10 once the quadrupole term is switched on)
+variable la     equal 6.00          # attractive (dispersion) exponent; 6 for SAFT-VR IMP fits
+variable muD    equal 0.0           # molecular dipole moment     [D]
+variable QDA    equal 1.7320        # molecular quadrupole moment [D*Angstrom]; 0 = plain SAFT-gamma Mie
+variable alpha  equal 0.0           # molecular polarizability    [Angstrom^3]
+
+# ---- physical constants ----------------------------------------------------
+variable kb     equal 0.0019872067  # kcal/(mol*K)  -> energy unit per kelvin
+
+variable segment_mass equal ${mol_mass}/${m}
+variable P          equal ${PMPa}*9.869
+
+# derived coefficients
+# (1 D)^2/(4*pi*eps0*kB) = 7242.97 K*Angstrom^3; times kb -> kcal/mol*Angstrom^3 per D^2.
+# The moments are divided by m because they are distributed over the m segments.
+variable D2K     equal 7242.970516
+
+variable Cmie    equal ${lr}/(${lr}-${la})*(${lr}/${la})^(${la}/(${lr}-${la}))
+variable epsreal equal ${epsK}*${kb}
+variable beta    equal 1/(${kb}*${T})
+variable mu2     equal ${D2K}*${kb}*${muD}*${muD}/${m}     # mu_hat^2  [kcal/mol*A^3]
+variable Q2      equal ${D2K}*${kb}*${QDA}*${QDA}/${m}     # Q_hat^2   [kcal/mol*A^5]
+variable mumuc   equal ${mu2}*${mu2}/3                     # [(kcal/mol)^2*A^6]
+variable muQc    equal ${mu2}*${Q2}                        # [(kcal/mol)^2*A^8]
+variable QQc     equal 1.4*${Q2}*${Q2}                     # [(kcal/mol)^2*A^10]
+
+# Initialisation
+
+units               real
+boundary            p p p
+atom_style          full
+newton              on
+
+pair_style          lepton 20.0
+bond_style          harmonic
+
+special_bonds       lj 0.0 1.0 1.0
+
+region startbox block 0 ${box_length} 0 ${box_length} 0 ${box_length}
+create_box 1 startbox bond/types 1 &
+                      angle/types 0 &
+                      dihedral/types 0 &
+                      extra/bond/per/atom 10 &
+                      extra/angle/per/atom 10 &
+                      extra/dihedral/per/atom 10 &
+                      extra/special/per/atom 20
+
+mass            1 ${segment_mass}
+pair_coeff      1 1 C*eps*((sig/r)^lamr-(sig/r)^lama)-beta*(mumuc/r^6+muQc/r^8+QQc/r^10);C=${Cmie};eps=${epsreal};sig=${sigma};lamr=${lr};lama=${la};beta=${beta};mumuc=${mumuc};muQc=${muQc};QQc=${QQc}
+bond_coeff      1 10000.0 ${sigma}
+
+molecule        smol CO2.txt
+create_atoms 0 random ${mol_num} ${molranseed} NULL overlap 2.0 mol smol ${molseed} units box maxtry 10000
+
+neigh_modify        one 6000
+
+variable            cpuremain equal cpuremain
+variable            vol equal vol
+variable            density equal density
+variable            lx equal lx
+
+# Minimisation
+
+thermo_style        custom fmax fnorm press etotal ke pe ebond eangle edihed eimp evdwl etail ecoul elong
+thermo              100
+
+min_style           cg
+min_modify          dmax 0.05
+minimize            1.0e-4 1.0e-6 2000 20000
+
+# Velocities
+
+velocity            all create ${T} ${vseed} mom yes rot no
+
+# NPT dynamics
+
+reset_timestep      0
+timestep            1.0
+thermo_style        custom time temp press etotal ke pe ebond eangle edihed eimp evdwl etail ecoul elong
+thermo              0
+
+fix                 0 all shake 1.0e-6 50 0 b 1
+fix                 1 all npt temp ${T} ${T} $(100.0*dt) iso ${P} ${P} $(1000.0*dt) nreset 20000
+fix                 2 all ave/time 1 1000000 1000000 c_thermo_temp c_thermo_press v_density v_vol v_lx file run-averages.txt
+fix                 3 all ave/time 1000 1 1000 c_thermo_temp c_thermo_press v_density v_vol v_lx v_cpuremain file run-instantaneous.txt
+dump                dmp all atom 100000 dump.lammpstrj
+
+run                 2000000
+
+unfix               0
+unfix               1
+unfix               2
+unfix               3
+undump              dmp
+
+# Output
+write_data         final_structure.data nocoeff
